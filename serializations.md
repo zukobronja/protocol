@@ -142,7 +142,6 @@ subsequent sections divided by object.
 | Channel withdraw transaction | 52 |
 | Channel close mutual transaction | 53 |
 | Channel close solo transaction | 54 |
-| Channel slash transaction | 55 |
 | Channel settle transaction | 56 |
 | Channel off chain transaction | 57 |
 | Channel | 58 |
@@ -465,20 +464,6 @@ purging them from the tree.
 
 The payload is a serialized signed channel offchain transaction or it is empty.
 
-#### Channel slash transaction
-```
-[ <channel_id>      :: id()
-, <from>            :: id()
-, <payload>         :: binary()
-, <poi>             :: poi()
-, <ttl>             :: int()
-, <fee>             :: int()
-, <nonce>           :: int()
-]
-```
-
-The payload is a serialized signed channel offchain transaction or it is empty.
-
 #### Channel settle transaction
 ```
 [ <channel_id>       :: id()
@@ -493,9 +478,9 @@ The payload is a serialized signed channel offchain transaction or it is empty.
 
 #### Channel offchain transaction
 
-The channel offchain transaction is not included directly in the transaction tree but indirectly as payload of:
-* The channel close solo transaction;
-* The channel slash transaction.
+The channel offchain transaction is not included directly in the
+transaction tree but indirectly as payload of the channel close solo
+transaction.
 
 ```
 [ <channel_id>       :: id()

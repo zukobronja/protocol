@@ -35,8 +35,7 @@ Only steps 1 and 3 require chain interactions, step 2 is off-chain.
 ### HTTP requests
 There are two types of HTTP requests:
 * Amount-modifying ones - [deposit](#deposit-transaction) and [withdrawal](#withdrawal-transaction)
-* Channel-closing ones - [solo close](#solo-close-transaction),
-  [slash](#slash-transaction) and [settle](#settle-transaction)
+* Channel-closing ones - [solo close](#solo-close-transaction) and [settle](#settle-transaction)
 
 ## Channel open
 In order to use a channel, it must be opened. Both parties negotiate parameters for the channel - for example the amounts to participate. Some of those are relevant to the chain and end up in a`channel_create_tx` that is posted on the chain. Once a certain amount of blocks have been mined on top of the one that included it, the channel is considered to be opened.

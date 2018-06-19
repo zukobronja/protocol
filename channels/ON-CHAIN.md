@@ -8,7 +8,6 @@
 - [Closing](#closing-channel-on-chain)
 	- [`channel_close_mutual`](#channel_close_mutual)
 	- [`channel_close_solo`](#channel_close_solo)
-	- [`channel_slash`](#channel_slash)
 	- [`channel_settle`](#channel_settlement)
 
 Each party keeps a state tree specific for the channel. It consists of all the
@@ -62,7 +61,7 @@ Serialization defined [here](../serializations.md#channel-create-transaction)
 - `responder`: public key/address of the responding peer
 - `initiator_amount`: unsigned amount of tokens the initiator commits to the channel
 - `responder_amount`: unsigned amount of tokens the responder commits to the channel
-- `lock_period`: minimal block height interval between a channel_close_solo/last channel_slash transaction and the channel_settle transaction
+- `lock_period`: minimal block height interval between the last channel_close_solo transaction and the channel_settle transaction
 - `ttl`
 - `fee`
 - `state_hash`: the root hash of the channel state tree; This is not validated, just kept in the channel's object
@@ -206,7 +205,7 @@ responding but can also be used by an malicious peer trying to close a channel
 with a state that hasn't been agreed on by all participants.
 
 With the inclusion of this transaction on-chain, the timer, during which
-disputes in the form of `channel_slash` will be considered, is started.
+disputes in the form of new `channel_close_solo` will be considered, is started.
 
 
 Serialization defined [here](../serializations.md#channel-close-solo-transaction)
@@ -240,47 +239,12 @@ If the playload is a transaction it could be:
 * transaction for on-chain forcing progress on a channel's state: this is not
   yet implemented but it will be unilaterally signed
 
-### `channel_slash`
+#### Slashing a close_solo_tx by sending another close_solo_tx
 
-If a malicious party sent a `channel_close_solo` with an outdated state, the
-honest party has the opportunity to issue a `channel_slash` transaction. This
-transaction needs to include a state signed by all peers with a higher sequence
-number.
-
-
-Serialization defined [here](../serializations.md#channel-slash-transaction)
-
-
-- `channel_id`: channel id as recorded on-chain
-- `from`: participant of the channel that posts the slashing transaction
-- `payload`: transaction proving that the proof of inclusion is part of the channel
-- `poi`: proof of inclusion
-- `ttl`
-- `nonce`: taken from the `from`'s account
-- `fee`
-
-Proof of inclusion represents the internal channel state. At the
-bare minimum it has to include all accounts and their balances but can also
-include contracts and contract calls.
-
-Payload is a valid transaction that has:
-* `state_hash` equal to the proof of inclusion's root hash
-* `channel_id` being the same as the transaction `channel_id`
-* `round` being greater or equal to the last on-chain `round` for that channel id
-The payload can be either empty or a signed transaction.
-If the payload is empty - the channel is closed according to
-the last on-chain transaction. In this case the proof of
-inclusion root must be equal to the one persisted for the channel on-chain.
-If the playload is a transaction it could be:
-* channel_offchain: then it MUST be co-signed
-* transaction for on-chain forcing progress on a channel's state: this is not
-  yet implemented but it will be unilaterally signed
-
-
-
-#### Requirements
-
-MUST be signed using private key corresponding to the public key `from`.
+If a malicious party sent a `channel_close_solo` with an outdated
+state, the honest party has the opportunity to issue another
+`channel_close_solo` transaction. This transaction needs to include a
+state signed by all peers with a higher sequence number.
 
 ### `channel_settle`
 
@@ -291,10 +255,9 @@ resolved and then redistributes the locked funds.
 
 The `channel_settle` MUST only be included in a block if:
 
-- a `channel_close_solo` transaction was published and has expired, i.e.
-`blockheight(top) - blockheight(channel_close_solo_tx) >= lock_period`
-- there are no outstanding `channel_slash` transactions, which means that
-  either none were published or the most recent one expired
+- at least one `channel_close_solo` transaction was published, and the
+last `channel_close_solo` has expired, i.e.  `blockheight(top) -
+blockheight(channel_close_solo_tx) >= lock_period`
 
 
 
@@ -335,6 +298,6 @@ channel.
 - `lock_period`: agreed upon locking period by peers
 
 Keeping track of the `state_hash`, `round`, `closes_at` and `lock_period` is
-necessary for nodes to be able to assess the validity of `channel_slash` and
+necessary for nodes to be able to assess the validity of `channel_close_solo` and
 `channel_settle` transactions.
 Serialization defined [here](../serializations.md#channel)

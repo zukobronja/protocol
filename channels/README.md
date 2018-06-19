@@ -340,7 +340,7 @@ channel_settle |   |     open     | -----+
                |           v
                |   +--------------+
                +-- |    closing   | ----+
-                   +--------------+     | channel_slash
+                   +--------------+     | channel_close_solo (slash)
                                  ^      |
                                  +------+
 ```
